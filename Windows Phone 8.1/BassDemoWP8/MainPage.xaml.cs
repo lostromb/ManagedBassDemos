@@ -17,8 +17,6 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
-
 namespace BassDemoWP8
 {
     /// <summary>
@@ -48,7 +46,7 @@ namespace BassDemoWP8
             // Init record and playback.
             // We assume that there's only 1 interface for each on a phone,
             // so just use the auto device id
-            // I assume WASAPI always provides a 48Khz interface, but there's a chance it might vary based on hardware
+            // I assume WASAPI always provides a 48Khz interface on phone, but there's a chance it might vary based on hardware
             Bass.Init(-1, 48000);
             Bass.RecordInit(-1);
             textBlock.Text = "- Waiting -";
@@ -65,6 +63,7 @@ namespace BassDemoWP8
             // Normally I would put a mutex around this block, but apparently mutexes behave very strangely inside
             // of async functions, so I don't even know the best practice. Interestingly, multiple simultaneous recording and playback is supported,
             // so this technically isn't a huge program breaker
+            // Get a record handle
             textBlock.Text = "- Opening Mic -";
             int hRecord = await Task.Run(() => OpenHRecord());
 
@@ -118,12 +117,12 @@ namespace BassDemoWP8
                 int desiredSamples = 48000 * 3;
                 short[] finalSample = new short[desiredSamples];
                 int samplesRecorded = 0;
-                short[] scratchBuf = new short[48000];
+                short[] scratchBuf = new short[Bass.RecordingBufferLength * 48];
                 while (samplesRecorded < desiredSamples)
                 {
                     // Query the number of bytes in the record buffer
                     // Note that there's an implicit assumption that bytesAvailable will always be an even number
-                    // The buffer is ignored here but we have to pass something, so we pass scratchBuf
+                    // The buffer is ignored on this call but we have to pass something, so we pass scratchBuf
                     int bytesAvailable = Bass.ChannelGetData(hRecord, scratchBuf, (int)DataFlags.Available);
                     int samplesAvailable = bytesAvailable / 2;
                     
@@ -139,7 +138,7 @@ namespace BassDemoWP8
                         samplesRecorded += samplesToUse;
                     }
 
-                    // Since Thread.Sleep isn't available in WP8 without Silverlight (bleh), we just block on a
+                    // Since Thread.Sleep isn't available in WP8 without Silverlight (???), we just block on a
                     // closed mutex instead of spinwaiting for more samples
                     waiter.WaitOne(10);
                 }
@@ -159,9 +158,8 @@ namespace BassDemoWP8
         {
             // Create a sample from the data that we recorded earlier.
             // Use the AUTOFREE flag so we don't have to do any cleanup
-            // Though this works for a simple demo, I believe there are more "proper"
-            // ways to do this kind of playback
-            // (i.e. using CreateStream and then pushing sample data to the stream)
+            // Alternatively we could just CreateStream() and then StreamPutData() and pass in the sample data,
+            // but for short clips they're about the same thing
             int hSample = Bass.CreateSample(sample.Length * 2, 48000, 1, 1, BassFlags.AutoFree);
             Bass.SampleSetData(hSample, sample);
             int hChannel = Bass.SampleGetChannel(hSample);
