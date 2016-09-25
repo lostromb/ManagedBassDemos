@@ -1,0 +1,16 @@
+﻿<Page
+    x:Class="BassDemoWP8.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BassDemoWP8"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Loaded="Page_Loaded" Unloaded="Page_Unloaded">
+
+    <Grid>
+        <Button x:Name="button" Content="Start Recording" HorizontalAlignment="Stretch" Margin="62,129,50,0" VerticalAlignment="Top" Click="button_Click" Height="79"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="62,204,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Height="35" Width="288" FontSize="21.333" TextAlignment="Center"/>
+
+    </Grid>
+</Page>
